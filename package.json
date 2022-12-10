@@ -1,0 +1,33 @@
+{
+  "name": "ssmg",
+  "description": "Simple Seedable Map Generator",
+  "version": "1.0.3",
+  "license": "BSD-3-Clause",
+  "author": "Leonardo Ciocari",
+  "type": "module",
+  "main": "dist/ssmg.mjs",
+  "keywords": [
+    "map",
+    "terrain",
+    "world",
+    "generator",
+    "tilemap"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/themrleon/ssmg"
+  },
+  "scripts": {
+    "demo": "vite --host",
+    "test": "vitest",
+    "build": "tsc && vite build"
+  },
+  "files": [
+    "/dist"
+  ],
+  "devDependencies": {
+    "typescript": "^4.9.4",
+    "vite": "^4.0.0",
+    "vitest": "^0.25.6"
+  }
+}
