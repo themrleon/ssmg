@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSMG - Simple Seedable Map Generator</title>
+    <style>
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+      body {
+        margin: 0px;
+        margin-left: 10px;
+        margin-top: 10px;
+        background: gainsboro;
+      }
+      #canvas {
+        text-align: center;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .title {
+        text-align: center;
+        font-weight: bold;
+      }
+      .panel-title {
+        font-weight: bold;
+      }
+      .panels-wrapper {
+        display: flex;
+      }
+      .panel-right {
+        display: flex;
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <p class="title">SSMG - Simple Seedable Map Generator</p>
+    <div class="panels-wrapper">
+      <div>
+        <div class="text-center">
+          <span class="panel-title">Map Options</span>
+        </div>
+        <div>
+          <input
+            type="range"
+            id="tilePixelSize"
+            name="tilePixelSize"
+            value="5"
+            min="1"
+            max="10"
+            oninput="tilePixelSizeValue.value = this.value"
+          />
+          <output id="tilePixelSizeValue">5</output>
+          Pixels per tile*
+        </div>
+        <div>
+          <input
+            type="range"
+            id="width"
+            name="width"
+            value="100"
+            min="1"
+            max="1000"
+            oninput="widthValue.value = this.value"
+          />
+          <output id="widthValue">100</output>
+          Width
+        </div>
+        <div>
+          <input
+            type="range"
+            id="height"
+            name="height"
+            value="100"
+            min="1"
+            max="1000"
+            oninput="heightValue.value = this.value"
+          />
+          <output id="heightValue">100</output>
+          Height
+        </div>
+        <div>
+          <input
+            type="range"
+            id="smoothLevel"
+            name="smoothLevel"
+            value="25"
+            min="1"
+            max="100"
+            oninput="smoothLevelValue.value = this.value"
+          />
+          <output id="smoothLevelValue">25</output>
+          smoothLevel
+        </div>
+        <div>
+          <input
+            type="range"
+            id="elevationMax"
+            name="elevationMax"
+            value="500"
+            min="0"
+            max="1000"
+            oninput="elevationMaxValue.value = this.value"
+          />
+          <output id="elevationMaxValue">500</output>
+          elevationMax
+        </div>
+        <div>
+          <input
+            type="range"
+            id="elevationMin"
+            name="elevationMin"
+            value="0"
+            min="0"
+            max="1000"
+            oninput="elevationMinValue.value = this.value"
+          />
+          <output id="elevationMinValue">0</output>
+          elevationMin
+        </div>
+        <div>
+          <input
+            type="range"
+            id="percentageGrass"
+            name="percentageGrass"
+            value="0.3"
+            step="0.01"
+            min="0.01"
+            max="1"
+            oninput="percentageGrassValue.value = this.value"
+          />
+          <output id="percentageGrassValue">0.3</output>
+          percentageGrass
+        </div>
+        <div>
+          <input
+            type="range"
+            id="percentageStone"
+            name="percentageStone"
+            value="0.3"
+            step="0.01"
+            min="0.01"
+            max="1"
+            oninput="percentageStoneValue.value = this.value"
+          />
+          <output id="percentageStoneValue">0.3</output>
+          percentageStone
+        </div>
+        <div>
+          <input
+            type="range"
+            id="percentageSand"
+            name="percentageSand"
+            value="0.03"
+            step="0.01"
+            min="0.01"
+            max="1"
+            oninput="percentageSandValue.value = this.value"
+          />
+          <output id="percentageSandValue">0.03</output>
+          percentageSand
+        </div>
+        <div>
+          <input
+            type="range"
+            id="percentageShore"
+            name="percentageShore"
+            value="0.08"
+            step="0.01"
+            min="0.01"
+            max="1"
+            oninput="percentageShoreValue.value = this.value"
+          />
+          <output id="percentageShoreValue">0.07</output>
+          percentageShore
+        </div>
+        <br />
+        <input type="number" id="seed" placeholder="Map seed (numbers only!)" />
+        <button type="button" id="button">Generate</button><br /><br />
+        *Not part of the library, it's just a convenience here!
+      </div>
+      <div class="panel-right">
+        <div>
+          <div class="text-center">
+            <span class="panel-title">Input</span>
+          </div>
+          <pre id="json-input"></pre>
+        </div>
+        <div>
+          <div class="text-center">
+            <span class="panel-title">Output</span>
+          </div>
+          <pre id="json-output"></pre>
+        </div>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script src="./ssmg.mjs" type="module"></script>
+    <script type="module">
+      import { Map } from "./ssmg.mjs";
+      const ctx = document.getElementById("canvas").getContext("2d");
+      const tileColor = {
+        [0]: "green",
+        [1]: "yellow",
+        [2]: "cyan",
+        [3]: "blue",
+        [4]: "gray",
+        [5]: "brown",
+      };
+      updateMap();
+
+      document.querySelector("#button").addEventListener("click", function () {
+        updateMap();
+      });
+
+      function getElementValueAsNumber(id) {
+        return Number(document.querySelector(id)?.value);
+      }
+
+      function updateMap() {
+        const width = getElementValueAsNumber("#width") || 100;
+        const height = getElementValueAsNumber("#height") || 100;
+        const smoothLevel = getElementValueAsNumber("#smoothLevel") || 25;
+        const elevationMax = getElementValueAsNumber("#elevationMax") || 500;
+        const elevationMin = getElementValueAsNumber("#elevationMin") || 0;
+        const tilePixelSize = getElementValueAsNumber("#tilePixelSize") || 2;
+        const percentageGrass =
+          getElementValueAsNumber("#percentageGrass") || 0.3;
+        const percentageStone =
+          getElementValueAsNumber("#percentageStone") || 0.3;
+        const percentageSand =
+          getElementValueAsNumber("#percentageSand") || 0.03;
+        const percentageShore =
+          getElementValueAsNumber("#percentageShore") || 0.08;
+        const seed = getElementValueAsNumber("#seed");
+        const options = {
+          width,
+          height,
+          smoothLevel,
+          elevationMax,
+          elevationMin,
+          percentageGrass,
+          percentageStone,
+          percentageSand,
+          percentageShore,
+          seed,
+        };
+        const map = new Map(options);
+        document.getElementById("json-input").innerHTML = `${JSON.stringify(
+          options,
+          null,
+          2
+        )}`;
+        document.getElementById("json-output").innerHTML = `${JSON.stringify(
+          {
+            metadata: map.metadata,
+            seed: map.seed,
+            tilemap: "Check browser's console!",
+          },
+          null,
+          2
+        )}`;
+
+        console.log("--------------------------------");
+        console.log("Map input object", options);
+        console.log("Map output object\n", map);
+
+        ctx.canvas.width = width * tilePixelSize;
+        ctx.canvas.height = height * tilePixelSize;
+
+        for (let y = 0; y < map.tilemap.length; y++) {
+          for (let x = 0; x < map.tilemap[0].length; x++) {
+            ctx.fillStyle = tileColor[map.tilemap[y][x]];
+            ctx.fillRect(
+              x * tilePixelSize,
+              y * tilePixelSize,
+              tilePixelSize,
+              tilePixelSize
+            );
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
